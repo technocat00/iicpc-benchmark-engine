@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  AreaChart, Area, LineChart, Line, XAxis, YAxis,
+  AreaChart, Area, XAxis, YAxis,
   Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine
 } from "recharts";
 
@@ -158,7 +158,6 @@ export default function Dashboard() {
   const [tpsData, setTpsData]  = useState<any[]>([]);
   const [contestants, setContestants] = useState<Contestant[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
-  const [tick, setTick] = useState(0);
   const logsRef = useRef<HTMLDivElement>(null);
 
   const [wsUrlInput, setWsUrlInput] = useState("");
@@ -290,7 +289,7 @@ export default function Dashboard() {
             </button>
           </div>
           {isConnected && <LiveBadge />}
-          <span style={{ fontFamily: mono, fontSize: ".65rem", color: C.muted, letterSpacing: ".1em" }}>
+          <span suppressHydrationWarning style={{ fontFamily: mono, fontSize: ".65rem", color: C.muted, letterSpacing: ".1em" }}>
             {new Date().toLocaleTimeString("en-US", { hour12: false })}
           </span>
         </div>
