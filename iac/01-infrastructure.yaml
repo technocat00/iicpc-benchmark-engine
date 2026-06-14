@@ -1,0 +1,88 @@
+# Redis Cache
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: iicpc-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: iicpc-system
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+# Redpanda (Kafka) Event Bus
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redpanda
+  namespace: iicpc-system
+spec:
+  serviceName: "redpanda"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redpanda
+  template:
+    metadata:
+      labels:
+        app: redpanda
+    spec:
+      containers:
+        - name: redpanda
+          image: docker.redpanda.com/redpandadata/redpanda:latest
+          command:
+            - /bin/sh
+            - -c
+            - "redpanda start --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092 --advertise-kafka-addr internal://redpanda.iicpc-system.svc.cluster.local:9092,external://localhost:19092 --smp 1 --memory 1G"
+          ports:
+            - containerPort: 9092
+              name: kafka
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda
+  namespace: iicpc-system
+spec:
+  selector:
+    app: redpanda
+  ports:
+    - port: 9092
+      targetPort: 9092
+      name: kafka

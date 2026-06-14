@@ -1,0 +1,36 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env*.local
+
+# Terraform state
+iac/.terraform/
+iac/*.tfstate
+iac/*.tfstate.backup
+iac/.terraform.lock.hcl
+
+# Temp files
+/tmp/
+*.bin
+ams.html
+ams_utf8.html
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.env
+.env
+secrets/

@@ -1,0 +1,26 @@
+[workspace]
+members = [
+    "common",
+    "load-generator",
+    "sandboxing-engine",
+    "telemetry-ingester",
+    "dummy-engine"
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1.36", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
+
+[profile.release]
+opt-level     = 3
+lto           = "thin"
+codegen-units = 1
+panic         = "abort"

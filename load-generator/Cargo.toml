@@ -1,0 +1,23 @@
+[package]
+name = "load-generator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio          = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+anyhow         = { workspace = true }
+tracing        = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono         = { workspace = true }
+rand           = { workspace = true }
+reqwest        = { version = "0.11", features = ["json"] }
+tokio-tungstenite = "0.21"
+uuid           = { version = "1.8",  features = ["v4"] }
+rskafka        = { version = "0.5",  features = ["transport-tls"] }
+hdrhistogram   = "7.5"
+futures        = "0.3"
+common         = { path = "../common" }
+
+

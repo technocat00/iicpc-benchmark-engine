@@ -1,0 +1,111 @@
+services:
+  # ─────────────────────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ─────────────────────────────────────────────────────────
+
+  # Redpanda: Kafka-compatible message broker (faster than Apache Kafka)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.2.2
+    container_name: iicpc-redpanda
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:9092
+    ports:
+      - "9092:19092"   # host:9092 → container:19092 (so native Rust hits localhost:9092)
+      - "9644:9644"     # Redpanda admin port
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Redis: Score store (telemetry ingester writes here, frontend reads here)
+  redis:
+    image: redis:7-alpine
+    container_name: iicpc-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  # Redpanda Console: browser UI to inspect Kafka topics (optional but useful)
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v2.3.1
+    container_name: iicpc-kafka-ui
+    ports:
+      - "8090:8080"     # open http://localhost:8090 to see Kafka topics live
+    environment:
+      - KAFKA_BROKERS=redpanda:9092
+    depends_on:
+      redpanda:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────────────────────
+  # RUST SERVICES
+  # ─────────────────────────────────────────────────────────
+
+  # Dummy Contestant Engine: simulates a trading engine for local testing
+  dummy-engine:
+    build:
+      context: .
+      dockerfile: dummy-engine/Dockerfile
+    container_name: iicpc-dummy-engine
+    ports:
+      - "8080:8080"
+    environment:
+      - RUST_LOG=info
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/order || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  # Telemetry Ingester: Kafka consumer, scorer, Redis writer, WebSocket server
+  telemetry-ingester:
+    build:
+      context: .
+      dockerfile: telemetry-ingester/Dockerfile
+    container_name: iicpc-telemetry-ingester
+    ports:
+      - "4000:4000"     # REST: http://localhost:4000/api/scores
+                        # WS:   ws://localhost:4000/ws
+    environment:
+      - KAFKA_ADDR=redpanda:9092
+      - REDIS_URL=redis://redis:6379
+      - LISTEN_ADDR=0.0.0.0:4000
+      - RUST_LOG=info
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Load Generator: fires 10,000+ orders/sec at the dummy engine
+  load-generator:
+    build:
+      context: .
+      dockerfile: load-generator/Dockerfile
+    container_name: iicpc-load-generator
+    environment:
+      - TARGET_URL=http://dummy-engine:8080/api/order
+      - CONTESTANT_ID=dummy-contestant
+      - KAFKA_ADDR=redpanda:9092
+      - NUM_WORKERS=100
+      - BATCH_SIZE=1000
+      - RUST_LOG=info
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      dummy-engine:
+        condition: service_healthy
