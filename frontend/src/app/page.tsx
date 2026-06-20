@@ -494,10 +494,10 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* ── FOOTER ── */}
+      {/* ── FOOTER ───────────────────────────────────────────────────────────────── */}
       <footer style={{ borderTop: `1px solid ${C.border}`, padding: "24px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontFamily: mono, fontSize: ".62rem", color: C.muted, letterSpacing: ".1em" }}>
-          © 2026 IICPC Benchmark Engine — Distributed Load Testing Platform
+        <div style={{ fontFamily: mono, fontSize: ".65rem", color: C.muted, letterSpacing: ".1em", textTransform: "uppercase" }}>
+          © 2026 Kartik & Diya — IICPC Benchmark Engine
         </div>
         <div style={{ display: "flex", gap: 20, fontFamily: mono, fontSize: ".62rem", color: C.muted, letterSpacing: ".1em" }}>
           <span>Rust · C++ · Go · Kafka · Kubernetes</span>
