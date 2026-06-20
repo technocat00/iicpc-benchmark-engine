@@ -81,3 +81,8 @@ Contestants are scored on:
 ## Team
 
 Built with Rust 🦀 + AI-assisted development for IICPC Summer Hackathon 2026.
+
+## Authors
+
+- [Kartik Agarwal]
+- [Diya Arora]
